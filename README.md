@@ -1,8 +1,11 @@
 # Two AI voices demo — Pipecat frame processors
 
-![Hot air balloon adventure screenshot](assets/hot-air-balloon-adventure.png)
+<p style="display: flex; gap: 1rem; align-items: center;">
+  <img src="assets/hot-air-balloon-adventure.png" alt="Image 1" width="45%" />
+  <img src="assets/two-voice-pipeline.png" alt="Image 2" width="45%" />
+</p>
 
-[Video demo](https://www.youtube.com/watch?v=6Jjbm0cMbeM)
+[ [Video demo](https://www.youtube.com/watch?v=6Jjbm0cMbeM) ]
 
 This demo shows how to use prompting, steerable TTS models, and Pipecat frame processors to create a story-telling experience with two AI voices.
 
@@ -18,11 +21,7 @@ BB
 I hope that the friendly owl comes back to visit today.
 ```
 
-Here's our Pipecat pipeline. The custom frame processors are:
-  - CharacterTagger
-  - CharacterGate
-  - CharacterRetagger
-  - TTSSegmentSequencer
+Here's our Pipecat pipeline. 
 
 ```
 pipeline = Pipeline(
@@ -43,6 +42,12 @@ pipeline = Pipeline(
 )
 ```
 
+The [custom frame processors](pipecat/character_processor.py) are:
+  - CharacterTagger
+  - CharacterGate
+  - CharacterRetagger
+  - TTSSegmentSequencer
+  
 The two slightly tricky things here are:
 
 1. We're splitting each LLM inference response into several segments, and sending those segments through parallel processing pipelines. The TTS generations are asynchronous and could complete in any order. We need to make sure each segment is sent down the pipeline in the correct order. We also don't want to introduce any extra buffering or delay! There are several ways to design this. Here, we buffer all the segments in the CharacterTagger processor. Whenever possible, we stream token-by-token as usual, but if a previous segment hasn't finished generating, we buffer. Because TTS runs faster than real-time, this introduces almost no additional playout delay.
