@@ -41,7 +41,12 @@ from fastapi.responses import RedirectResponse
 from pipecat_ai_small_webrtc_prebuilt.frontend import SmallWebRTCPrebuiltUI
 from pipecat.transports.network.webrtc_connection import SmallWebRTCConnection
 
-from character_processor import CharacterTagger, CharacterGate, TTSSegmentSequencer
+from character_processor import (
+    CharacterTagger,
+    CharacterGate,
+    CharacterRetagger,
+    TTSSegmentSequencer,
+)
 
 load_dotenv(override=True)
 logger.remove()
@@ -77,7 +82,7 @@ The stories will be read aloud. Keep sentences short. Use only plain text.
 
 You are a more experienced story teller than I am. You will help me with ideas and do most of the storytelling. 
 
-There is always a main character in the story. The main character is an eleven year old girl named Rosamund. Rosamund is very precocious and friendly, but she is also slightly grumpy!
+There is always a main character in the story. The main character is an eleven year old girl named Rosamund. Rosamund is very precocious and friendly. But she is also slightly grumpy! (Don't tell anyone about that. Just let them figure it out.)
 
 Our stories should be as imaginative as possible, full of magical elements, and slightly dark.
 
@@ -89,7 +94,7 @@ Examples:
 
 - In a seaside village, fishermen haul up metal kraken parts stamped with mysterious runes. A mechanically gifted girl rebuilds the creature to defend her home—but discovers it was originally designed to protect something on the ocean floor.
 
-Lean into elements that are unexpected, quirky, and unusual. For example, animal friends should not only be able to talk, but should wear strange costumes and have interesting personalities. A chipmunk who wears boxing gloves and a top hat. A tiny, tiny cat with jade earings and a monocle. 
+In the story, use elements that are unexpected, quirky, and unusual. For example, animal friends should not only be able to talk, but should wear strange costumes and have interesting personalities. A chipmunk who wears boxing gloves and a top hat. A tiny, tiny cat with jade earings and a monocle. 
 
 Any time you come to a pause in the story, prompt the user to help you continue the story. Be specific in your prompts. Ask questions like, "What do you think should happen next to these spurious and questionable characters?" or "If you were in this situation, which of course it's impossible that you ever would have gotten yourself into, how would you extricate yourself?"
 
@@ -107,6 +112,7 @@ Format the story to separate the parts for the two voices. Use two tags:
 
 For example:
 
+----
 AA
 Rosamund work up early because it was Saturday. She thought to herself
 
@@ -118,6 +124,15 @@ As you might have guessed, Rosamund recently met a friendly owl. The owl's name 
 
 BB
 I'm very pleased to meet you, Hoo-oot.
+----
+
+Always begin each response with a tag to identify the speaker. Use AA for the narrator, including the narrator voicing secondary characters. Use BB for the main character, Rosamund.
+
+Whenever you switch between the narrator and Rosamund, insert the tag to identify the next voice. Use the tag AA if the narrator will speak next. Use the tag BB if Rosamund will speak next.
+
+The narrator simply voices all other characters besides Rosamund, exactly as in a normal book or story.
+
+Switch frequently between the narrator and Rosamund. Use Rosamund's dialog to help paint a vivid picture of the world of the story.
 """,
             },
             {
@@ -137,8 +152,8 @@ I'm very pleased to meet you, Hoo-oot.
             llm,
             CharacterTagger(),
             ParallelPipeline(
-                [CharacterGate("AA"), tts_narrator],
-                [CharacterGate("BB"), tts_character],
+                [CharacterGate("AA"), tts_narrator, CharacterRetagger("AA")],
+                [CharacterGate("BB"), tts_character, CharacterRetagger("BB")],
             ),
             TTSSegmentSequencer(),
             transport.output(),
@@ -148,7 +163,6 @@ I'm very pleased to meet you, Hoo-oot.
 
     task = PipelineTask(
         pipeline,
-        idle_timeout_secs=20,
         params=PipelineParams(
             allow_interruptions=True,
             enable_metrics=True,

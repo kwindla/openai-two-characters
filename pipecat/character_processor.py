@@ -141,6 +141,20 @@ class CharacterGate(FrameProcessor):
             await self.push_frame(frame, direction)
 
 
+class CharacterRetagger(FrameProcessor):
+    def __init__(self, character, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.character = character
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, LLMFullResponseStartFrame):
+            await self.push_frame(frame)
+            await self.push_frame(LLMTextFrame(text=f"{self.character}\n"))
+        else:
+            await self.push_frame(frame, direction)
+
+
 class TTSSegmentSequencer(FrameProcessor):
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
