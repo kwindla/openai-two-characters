@@ -47,7 +47,7 @@ The [custom frame processors](pipecat/character_processor.py) are:
   - CharacterGate
   - CharacterRetagger
   - TTSSegmentSequencer
-  
+
 The two slightly tricky things here are:
 
 1. We're splitting each LLM inference response into several segments, and sending those segments through parallel processing pipelines. The TTS generations are asynchronous and could complete in any order. We need to make sure each segment is sent down the pipeline in the correct order. We also don't want to introduce any extra buffering or delay! There are several ways to design this. Here, we buffer all the segments in the CharacterTagger processor. Whenever possible, we stream token-by-token as usual, but if a previous segment hasn't finished generating, we buffer. Because TTS runs faster than real-time, this introduces almost no additional playout delay.
@@ -55,4 +55,18 @@ The two slightly tricky things here are:
 2. We can't just strip the tags from the LLM output. This is a multi-turn conversation, and all output becomes context for future turns. If we strip the tags, we'll slowly "teach" the LLM not to use tags at all. So we re-insert the tags after the TTS generation. We are altering the LLM output, because we're being a little bit lazy and leaving the responses split into separate segments. The context aggregator stores each voice segment as a separate "assistant" message in the context history. We could fix this, but GPT-4o handles it fine. Other LLMs/APIs wouldn't like this.
 
 ## Run the code yourself
+
+```
+cd pipecat
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# set up environment variables (API keys)
+cp env.example .env
+
+python bot.py
+```
+
+Open a web browser to http://localhost:7860
 
