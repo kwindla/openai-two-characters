@@ -1,5 +1,9 @@
 # Two AI voices demo — Pipecat frame processors
 
+![Hot air balloon adventure screenshot](assets/hot-air-balloon-adventure.png)
+
+[Video demo](https://www.youtube.com/watch?v=6Jjbm0cMbeM)
+
 This demo shows how to use prompting, steerable TTS models, and Pipecat frame processors to create a story-telling experience with two AI voices.
 
 The idea is to prompt the LLM to use a tag to identify separate voices, then use Pipecat frame processors to separate the LLM output into two streams, each with its own TTS model.
