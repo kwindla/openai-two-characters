@@ -289,7 +289,7 @@ def local():
 
             return answer
 
-        uvicorn.run(app, host="0.0.0.0", port=7860)
+        uvicorn.run(app, host="localhost", port=7860)
 
     except Exception as e:
         logger.exception(f"Error in local bot process: {str(e)}")

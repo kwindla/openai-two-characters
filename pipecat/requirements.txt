@@ -1,0 +1,5 @@
+pipecat-ai[openai,deepgram,daily,webrtc,silero]==0.0.71
+pipecat-ai-small-webrtc-prebuilt
+python-dotenv
+fastapi
+uvicorn
